@@ -911,7 +911,8 @@ public class SlidingUpPanelLayout extends ViewGroup {
             }
 
             case MotionEvent.ACTION_MOVE: {
-                if (ady > dragSlop && adx > ady) {
+                mIsUnableToDrag = false;
+                if (ady > dragSlop && adx > ady && !isViewUnder(mDragView, (int) x, (int) y)) {
                     mDragHelper.cancel();
                     mIsUnableToDrag = true;
                     return false;
@@ -921,6 +922,7 @@ public class SlidingUpPanelLayout extends ViewGroup {
 
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
+                mIsUnableToDrag = false;
                 // If the dragView is still dragging when we get here, we need to call processTouchEvent
                 // so that the view is settled
                 // Added to make scrollable views work (tokudu)
