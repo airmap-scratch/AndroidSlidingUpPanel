@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
 
-repositories {
-    mavenCentral()
-}
+def libVersion = '3.3.2'
 
 dependencies {
     compile 'com.android.support:support-v4:23.4.0'
@@ -12,10 +12,81 @@ dependencies {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    buildToolsVersion "25.0.1"
     lintOptions {
         abortOnError false
     }
 }
 
-apply from: '../maven_push.gradle'
+def siteUrl = 'http://www.airmap.com'
+def projectName = 'com.airmap.slidinguppanel'
+group = projectName
+def gitUrl = 'https://github.com/airmap-scratch/AndroidSlidingUpPanel.git'
+
+bintray {
+    user = bintray_user
+    key = bintray_api_key
+    configurations = ['archives']
+    pkg {
+        repo = 'maven'
+        userOrg = 'airmapio'
+        version libVersion
+        name = projectName
+        desc = 'Fork of AndroidSlidingUpPanel'
+        licenses = ['Apache-2.0']
+        labels = ['android', 'airmap', 'drone']
+        vcsUrl = gitUrl
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        pom.project {
+            packaging 'aar'
+            name projectName
+            url siteUrl
+            licenses {
+                license {
+                    name 'Apache-2.0'
+                }
+            }
+            developers {
+                developer {
+                    id 'collin'
+                    name 'Collin Vance'
+                    email 'collin@airmap.com'
+                }
+            }
+            scm {
+                connection gitUrl
+                developerConnection gitUrl
+                url siteUrl
+
+            }
+        }.writeTo("$buildDir/pom.xml")
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
